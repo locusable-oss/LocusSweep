@@ -6,15 +6,19 @@ import UniformTypeIdentifiers
 @MainActor
 final class AppState: ObservableObject {
     @Published var selected: AppBundleInfo?
+    @Published var residueCandidates: [ResidueCandidate] = []
     @Published var errorMessage: String?
     @Published var isDropTargeted = false
 
     func ingest(url: URL) {
         do {
-            selected = try AppBundleReader.read(url: url)
+            let info = try AppBundleReader.read(url: url)
+            selected = info
+            residueCandidates = ResidueRules.candidatePaths(for: info)
             errorMessage = nil
         } catch {
             selected = nil
+            residueCandidates = []
             errorMessage = error.localizedDescription
         }
     }
@@ -33,6 +37,7 @@ final class AppState: ObservableObject {
 
     func clear() {
         selected = nil
+        residueCandidates = []
         errorMessage = nil
     }
 }

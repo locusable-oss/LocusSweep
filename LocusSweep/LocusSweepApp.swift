@@ -10,7 +10,7 @@ struct LocusSweepApp: App {
             ContentView()
                 .environmentObject(appState)
         }
-        .defaultSize(width: 640, height: 420)
+        .defaultSize(width: 720, height: 560)
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About LocusSweep") {
@@ -30,7 +30,7 @@ struct LocusSweepApp: App {
         Settings {
             Form {
                 Text("LocusSweep — drag-to-inspect .app bundles")
-                Text("Residue scan arrives in later work items.")
+                Text("Size scan / trash moves arrive in later work items.")
                     .foregroundStyle(.secondary)
             }
             .padding()

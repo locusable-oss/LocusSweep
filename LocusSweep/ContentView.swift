@@ -33,7 +33,34 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(4)
                 }
-                Text("Residue path scan is not implemented in this build (later sorts).")
+
+                GroupBox("Candidate residue paths (\(appState.residueCandidates.count))") {
+                    if appState.residueCandidates.isEmpty {
+                        Text("No candidate paths (blocked system bundle or empty id). Full disk scan arrives later.")
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(4)
+                    } else {
+                        List(appState.residueCandidates) { cand in
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(cand.category.displayName)
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                Text(cand.path)
+                                    .font(.body.monospaced())
+                                    .textSelection(.enabled)
+                                    .lineLimit(2)
+                                Text("matched by \(cand.matchedBy)")
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding(.vertical, 2)
+                        }
+                        .frame(minHeight: 180, maxHeight: 320)
+                    }
+                }
+
+                Text("Paths are rule-based candidates only — existence and size scan is a later work item.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else if let err = appState.errorMessage {
