@@ -1,4 +1,4 @@
-# LocusClean
+# LocusSweep
 
 Native macOS uninstall helper: drop an `.app`, read Bundle ID + path, then (later) scan leftovers.
 

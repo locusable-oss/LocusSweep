@@ -2,13 +2,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "LocusClean",
+    name: "LocusSweep",
     platforms: [.macOS(.v15)],
     products: [
-        .library(name: "LocusCleanCore", targets: ["LocusCleanCore"]),
+        .library(name: "LocusSweepCore", targets: ["LocusSweepCore"]),
     ],
     targets: [
-        .target(name: "LocusCleanCore", path: "Sources/LocusCleanCore"),
-        .testTarget(name: "LocusCleanCoreTests", dependencies: ["LocusCleanCore"], path: "Tests/LocusCleanCoreTests"),
+        .target(name: "LocusSweepCore", path: "Sources/LocusSweepCore"),
+        .testTarget(name: "LocusSweepCoreTests", dependencies: ["LocusSweepCore"], path: "Tests/LocusSweepCoreTests"),
     ]
 )

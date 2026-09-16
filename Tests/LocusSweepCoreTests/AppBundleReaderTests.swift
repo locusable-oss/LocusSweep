@@ -1,5 +1,5 @@
 import XCTest
-@testable import LocusCleanCore
+@testable import LocusSweepCore
 
 final class AppBundleReaderTests: XCTestCase {
     func testReadsSyntheticBundle() throws {

@@ -2,20 +2,20 @@ import SwiftUI
 import AppKit
 
 @main
-struct LocusCleanApp: App {
+struct LocusSweepApp: App {
     @StateObject private var appState = AppState()
 
     var body: some Scene {
-        WindowGroup("LocusClean") {
+        WindowGroup("LocusSweep") {
             ContentView()
                 .environmentObject(appState)
         }
         .defaultSize(width: 640, height: 420)
         .commands {
             CommandGroup(replacing: .appInfo) {
-                Button("About LocusClean") {
+                Button("About LocusSweep") {
                     NSApplication.shared.orderFrontStandardAboutPanel(options: [
-                        .applicationName: "LocusClean",
+                        .applicationName: "LocusSweep",
                     ])
                 }
             }
@@ -29,7 +29,7 @@ struct LocusCleanApp: App {
 
         Settings {
             Form {
-                Text("LocusClean — drag-to-inspect .app bundles")
+                Text("LocusSweep — drag-to-inspect .app bundles")
                 Text("Residue scan arrives in later work items.")
                     .foregroundStyle(.secondary)
             }

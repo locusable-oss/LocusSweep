@@ -8,7 +8,7 @@ struct ContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("LocusClean")
+                Text("LocusSweep")
                     .font(.title2.weight(.semibold))
                 Spacer()
                 Button("Choose App…") { appState.chooseApp() }

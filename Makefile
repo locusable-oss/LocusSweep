@@ -1,8 +1,8 @@
 .PHONY: generate open build acceptance help
 
 help:
-	@echo "LocusClean"
-	@echo "  make generate   - xcodegen → LocusClean.xcodeproj"
+	@echo "LocusSweep"
+	@echo "  make generate   - xcodegen → LocusSweep.xcodeproj"
 	@echo "  make open       - generate + open in Xcode"
 	@echo "  make build      - unsigned local Debug build (macOS + Xcode required)"
 	@echo "  make acceptance - print path to ACCEPTANCE.md checklist"
@@ -12,10 +12,10 @@ generate:
 	xcodegen generate
 
 open: generate
-	open LocusClean.xcodeproj
+	open LocusSweep.xcodeproj
 
 build: generate
-	xcodebuild -scheme LocusClean -configuration Debug -destination 'platform=macOS' \
+	xcodebuild -scheme LocusSweep -configuration Debug -destination 'platform=macOS' \
 		CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=YES build
 
 acceptance:
