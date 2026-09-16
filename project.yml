@@ -1,0 +1,33 @@
+name: LocusClean
+options:
+  objectVersion: 56
+  xcodeVersion: "15.0"
+  bundleIdPrefix: studio.locusable
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    PRODUCT_BUNDLE_IDENTIFIER: studio.locusable.LocusClean
+    GENERATE_INFOPLIST_FILE: YES
+    INFOPLIST_KEY_CFBundleDisplayName: LocusClean
+    INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+    INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2026 Locusable Studio"
+    INFOPLIST_KEY_LSUIElement: NO
+targets:
+  LocusClean:
+    type: application
+    platform: macOS
+    sources:
+      - path: LocusClean
+        excludes:
+          - "**/*.md"
+      - path: Sources/LocusCleanCore
+    settings:
+      base:
+        PRODUCT_NAME: LocusClean
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGNING_ALLOWED: YES
