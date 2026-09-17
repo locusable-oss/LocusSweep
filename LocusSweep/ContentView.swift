@@ -19,7 +19,7 @@ struct ContentView: View {
 
             DropZone()
                 .frame(maxWidth: .infinity)
-                .frame(height: 140)
+                .frame(height: 120)
 
             if let info = appState.selected {
                 GroupBox("Selected app") {
@@ -34,47 +34,105 @@ struct ContentView: View {
                     .padding(4)
                 }
 
-                GroupBox("Candidate residue paths (\(appState.residueCandidates.count))") {
-                    if appState.residueCandidates.isEmpty {
-                        Text("No candidate paths (blocked system bundle or empty id). Full disk scan arrives later.")
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(4)
-                    } else {
-                        List(appState.residueCandidates) { cand in
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(cand.category.displayName)
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.secondary)
-                                Text(cand.path)
-                                    .font(.body.monospaced())
-                                    .textSelection(.enabled)
-                                    .lineLimit(2)
-                                Text("matched by \(cand.matchedBy)")
-                                    .font(.caption2)
-                                    .foregroundStyle(.tertiary)
-                            }
-                            .padding(.vertical, 2)
-                        }
-                        .frame(minHeight: 180, maxHeight: 320)
-                    }
-                }
+                residueListSection
 
-                Text("Paths are rule-based candidates only — existence and size scan is a later work item.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack {
+                    Text("Safety filter skips com.apple.* and system paths. Moves go to Trash only (never rm).")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
             } else if let err = appState.errorMessage {
                 Text(err)
                     .foregroundStyle(.red)
             } else {
-                Text("Drop an .app here or choose one to read Bundle ID and install path.")
+                Text("Drop an .app here or choose one to scan leftover files.")
                     .foregroundStyle(.secondary)
             }
 
-            Spacer()
+            Spacer(minLength: 0)
         }
         .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .confirmationDialog(
+            "Move \(appState.checkedRows.count) item(s) (\(appState.checkedSummary.formattedSize)) to Trash?",
+            isPresented: $appState.showTrashConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Move to Trash", role: .destructive) {
+                appState.confirmTrashChecked()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Items can be restored from Trash. LocusSweep never permanently deletes with rm.")
+        }
+        .sheet(isPresented: $appState.showSummary) {
+            CleanSummarySheet()
+                .environmentObject(appState)
+        }
+    }
+
+    @ViewBuilder
+    private var residueListSection: some View {
+        GroupBox {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(listTitle)
+                        .font(.headline)
+                    Spacer()
+                    if appState.isScanning {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                    Button("All") { appState.selectAll(true) }
+                        .disabled(appState.rows.isEmpty)
+                    Button("None") { appState.selectAll(false) }
+                        .disabled(appState.rows.isEmpty)
+                    Button("Rescan") {
+                        Task { await appState.rescan() }
+                    }
+                    .disabled(appState.isScanning || appState.isTrashing)
+                    Button("Move to Trash…") {
+                        appState.requestTrashChecked()
+                    }
+                    .disabled(appState.checkedRows.isEmpty || appState.isTrashing || appState.isScanning)
+                    .keyboardShortcut(.defaultAction)
+                }
+
+                if appState.rows.isEmpty && !appState.isScanning {
+                    Text("No existing residue found (or all candidates filtered as unsafe).")
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(4)
+                } else {
+                    List {
+                        ForEach($appState.rows) { $row in
+                            ResidueRowView(row: $row)
+                        }
+                    }
+                    .listStyle(.inset(alternatesRowBackgrounds: true))
+                    .frame(minHeight: 200, maxHeight: 360)
+
+                    HStack {
+                        Text("Checked: \(appState.checkedRows.count) · \(appState.checkedSummary.formattedSize)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text("Found: \(appState.rows.count) · \(appState.scanSummary.formattedSize)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } label: {
+            Text("Scan results")
+        }
+    }
+
+    private var listTitle: String {
+        if appState.isScanning { return "Scanning…" }
+        if appState.isTrashing { return "Moving to Trash…" }
+        return "\(appState.rows.count) item(s) · \(appState.scanSummary.formattedSize)"
     }
 
     @ViewBuilder
@@ -86,6 +144,94 @@ struct ContentView: View {
             Text(value)
                 .textSelection(.enabled)
         }
+    }
+}
+
+private struct ResidueRowView: View {
+    @Binding var row: ResidueRow
+
+    var body: some View {
+        Toggle(isOn: $row.isChecked) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 8) {
+                        Text(row.item.category.displayName)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        Text(row.item.formattedSize)
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                    Text(row.item.path)
+                        .font(.body.monospaced())
+                        .textSelection(.enabled)
+                        .lineLimit(2)
+                    Text("matched by \(row.item.matchedBy)")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .toggleStyle(.checkbox)
+        .padding(.vertical, 2)
+    }
+}
+
+private struct CleanSummarySheet: View {
+    @EnvironmentObject private var appState: AppState
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Cleanup summary")
+                .font(.title2.weight(.semibold))
+
+            if let summary = appState.lastSummary {
+                Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 10) {
+                    GridRow {
+                        Text("Items moved to Trash")
+                            .foregroundStyle(.secondary)
+                        Text("\(summary.itemCount)")
+                            .font(.title3.monospacedDigit())
+                    }
+                    GridRow {
+                        Text("Volume")
+                            .foregroundStyle(.secondary)
+                        Text(summary.formattedSize)
+                            .font(.title3.monospacedDigit())
+                    }
+                }
+            } else {
+                Text("No items were moved.")
+                    .foregroundStyle(.secondary)
+            }
+
+            if !appState.lastFailures.isEmpty {
+                GroupBox("Some items failed") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(appState.lastFailures, id: \.self) { line in
+                            Text(line)
+                                .font(.caption)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+
+            Text("You can restore items from Trash in Finder if needed.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            HStack {
+                Spacer()
+                Button("Done") { dismiss() }
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(24)
+        .frame(width: 420)
     }
 }
 

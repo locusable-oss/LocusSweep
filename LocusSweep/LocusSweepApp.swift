@@ -10,7 +10,7 @@ struct LocusSweepApp: App {
             ContentView()
                 .environmentObject(appState)
         }
-        .defaultSize(width: 720, height: 560)
+        .defaultSize(width: 780, height: 640)
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About LocusSweep") {
@@ -24,17 +24,21 @@ struct LocusSweepApp: App {
                     appState.chooseApp()
                 }
                 .keyboardShortcut("o", modifiers: [.command])
+                Button("Move Checked to Trash…") {
+                    appState.requestTrashChecked()
+                }
+                .keyboardShortcut(.delete, modifiers: [.command])
             }
         }
 
         Settings {
             Form {
-                Text("LocusSweep — drag-to-inspect .app bundles")
-                Text("Size scan / trash moves arrive in later work items.")
+                Text("LocusSweep — drop an .app, scan leftovers, move to Trash.")
+                Text("Safety filter skips Apple/system paths. Never uses rm -rf.")
                     .foregroundStyle(.secondary)
             }
             .padding()
-            .frame(width: 360, height: 120)
+            .frame(width: 400, height: 120)
         }
     }
 }

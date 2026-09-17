@@ -2,6 +2,7 @@ import Foundation
 
 /// Categories of common macOS per-user residue under `~/Library`.
 public enum ResidueCategory: String, CaseIterable, Sendable, Codable, Hashable {
+    case application
     case preferences
     case applicationSupport
     case caches
@@ -17,6 +18,7 @@ public enum ResidueCategory: String, CaseIterable, Sendable, Codable, Hashable {
 
     public var displayName: String {
         switch self {
+        case .application: return "Application"
         case .preferences: return "Preferences"
         case .applicationSupport: return "Application Support"
         case .caches: return "Caches"
@@ -131,6 +133,8 @@ public enum ResidueRules {
             let base = root.relativeLibraryPath
 
             switch root.category {
+            case .application:
+                break // app bundle path is injected by ResidueScanner, not library roots
             case .preferences:
                 if !bid.isEmpty {
                     add("\(base)/\(bid).plist", category: .preferences, matchedBy: "bundleID")
