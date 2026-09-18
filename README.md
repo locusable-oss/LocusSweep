@@ -1,5 +1,7 @@
 # LocusSweep
 
+![LocusSweep](docs/icon.png)
+
 Native macOS uninstall helper. Drop one or more `.app` bundles, scan leftovers under `~/Library`, review sizes, and move checked items to Trash — one app at a time.
 
 GPL-3.0 — Copyright (C) 2026 Locusable Studio.
