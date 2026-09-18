@@ -9,8 +9,9 @@ struct LocusSweepApp: App {
         WindowGroup("LocusSweep") {
             ContentView()
                 .environmentObject(appState)
+                .frame(minWidth: 920, minHeight: 600)
         }
-        .defaultSize(width: 780, height: 640)
+        .defaultSize(width: 980, height: 720)
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About LocusSweep") {
@@ -20,25 +21,31 @@ struct LocusSweepApp: App {
                 }
             }
             CommandGroup(after: .newItem) {
-                Button("Choose App…") {
-                    appState.chooseApp()
+                Button("Choose Apps…") {
+                    appState.chooseApps()
                 }
                 .keyboardShortcut("o", modifiers: [.command])
+                Button("Scan Queue") {
+                    appState.rescanQueue()
+                }
+                .keyboardShortcut("r", modifiers: [.command])
+                .disabled(appState.queue.isEmpty || appState.isScanning || appState.isTrashing)
                 Button("Move Checked to Trash…") {
-                    appState.requestTrashChecked()
+                    appState.requestTrash(.current)
                 }
                 .keyboardShortcut(.delete, modifiers: [.command])
+                .disabled(appState.activeApp?.checkedPaths.isEmpty != false)
+                Button("Clean Queue…") {
+                    appState.requestTrash(.queue)
+                }
+                .keyboardShortcut(.delete, modifiers: [.command, .shift])
+                .disabled(appState.cleanableCount == 0)
             }
         }
 
         Settings {
-            Form {
-                Text("LocusSweep — drop an .app, scan leftovers, move to Trash.")
-                Text("Safety filter skips Apple/system paths. Never uses rm -rf.")
-                    .foregroundStyle(.secondary)
-            }
-            .padding()
-            .frame(width: 400, height: 120)
+            SettingsView()
+                .environmentObject(appState)
         }
     }
 }

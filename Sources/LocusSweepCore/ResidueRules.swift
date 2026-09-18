@@ -16,6 +16,11 @@ public enum ResidueCategory: String, CaseIterable, Sendable, Codable, Hashable {
     case applicationScripts
     case launchAgents
 
+    /// Categories that live under `~/Library` (the app bundle is not one of them).
+    public static var libraryCategories: [ResidueCategory] {
+        allCases.filter { $0 != .application }
+    }
+
     public var displayName: String {
         switch self {
         case .application: return "Application"
@@ -103,7 +108,8 @@ public enum ResidueRules {
     public static func candidatePaths(
         bundleID: String,
         appName: String,
-        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
+        settings: SweepSettings = .default
     ) -> [ResidueCandidate] {
         let bid = bundleID.trimmingCharacters(in: .whitespacesAndNewlines)
         let name = appName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -129,7 +135,7 @@ public enum ResidueRules {
             }
         }
 
-        for root in libraryRoots {
+        for root in libraryRoots where settings.allows(category: root.category) {
             let base = root.relativeLibraryPath
 
             switch root.category {
@@ -168,8 +174,9 @@ public enum ResidueRules {
                 if !bid.isEmpty {
                     add("\(base)/\(bid)", category: root.category, matchedBy: "bundleID")
                 }
-                // App display name is a common folder under Support / Caches / Logs
-                if !name.isEmpty, name != bid {
+                // App display name is a common folder under Support / Caches / Logs.
+                // Strict safety keeps bundle-ID paths only.
+                if settings.safetyLevel != .strict, !name.isEmpty, name != bid {
                     add("\(base)/\(name)", category: root.category, matchedBy: "appName")
                 }
             }
@@ -184,7 +191,16 @@ public enum ResidueRules {
     }
 
     /// Convenience from `AppBundleInfo`.
-    public static func candidatePaths(for info: AppBundleInfo, homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) -> [ResidueCandidate] {
-        candidatePaths(bundleID: info.bundleIdentifier, appName: info.name, homeDirectory: homeDirectory)
+    public static func candidatePaths(
+        for info: AppBundleInfo,
+        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
+        settings: SweepSettings = .default
+    ) -> [ResidueCandidate] {
+        candidatePaths(
+            bundleID: info.bundleIdentifier,
+            appName: info.name,
+            homeDirectory: homeDirectory,
+            settings: settings
+        )
     }
 }

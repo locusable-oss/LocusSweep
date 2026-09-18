@@ -31,7 +31,9 @@ public enum SafetyFilter {
     /// Returns false for paths that should never be offered for trash (conservative default).
     public static func isSafeToPropose(
         path: String,
-        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
+        matchedBy: String? = nil,
+        safetyLevel: SafetyLevel = .balanced
     ) -> Bool {
         let trimmed = path.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
@@ -87,6 +89,9 @@ public enum SafetyFilter {
                     return false
                 }
             }
+            if safetyLevel == .strict, matchedBy == "appName" {
+                return false
+            }
             return true
         }
 
@@ -114,9 +119,17 @@ public enum SafetyFilter {
     /// Filter candidates, dropping unsafe paths.
     public static func filter(
         _ candidates: [ResidueCandidate],
-        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
+        safetyLevel: SafetyLevel = .balanced
     ) -> [ResidueCandidate] {
-        candidates.filter { isSafeToPropose(path: $0.path, homeDirectory: homeDirectory) }
+        candidates.filter {
+            isSafeToPropose(
+                path: $0.path,
+                homeDirectory: homeDirectory,
+                matchedBy: $0.matchedBy,
+                safetyLevel: safetyLevel
+            )
+        }
     }
 
     public static func filterScanned(
