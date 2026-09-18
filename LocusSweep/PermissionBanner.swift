@@ -59,9 +59,12 @@ struct PermissionBanner: View {
             HStack(alignment: .center, spacing: 8) {
                 Button("Open System Settings", action: onOpenSettings)
                     .buttonStyle(.borderedProminent)
+                    .fixedSize()
                 Button("Scan Again", action: onScanAgain)
+                    .fixedSize()
                 Spacer(minLength: 12)
                 Button("Dismiss", action: onDismiss)
+                    .fixedSize()
             }
         }
         .padding(12)

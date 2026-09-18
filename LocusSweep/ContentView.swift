@@ -57,10 +57,14 @@ struct ContentView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                    .truncationMode(.tail)
+                    .layoutPriority(-1)
             }
             Spacer(minLength: 12)
             Text(appState.settings.safetyLevel.title)
                 .font(.caption.weight(.semibold))
+                .lineLimit(1)
+                .fixedSize()
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(Capsule().fill(Color.secondary.opacity(0.12)))
@@ -68,16 +72,20 @@ struct ContentView: View {
             if appState.isScanning {
                 ProgressView()
                     .controlSize(.small)
+                    .fixedSize()
                     .accessibilityLabel("Scanning")
             }
             Button("Choose Apps…") { appState.chooseApps() }
                 .disabled(appState.isTrashing)
+                .fixedSize()
             Button("Scan") { appState.rescanQueue() }
                 .disabled(appState.queue.isEmpty || appState.isScanning || appState.isTrashing)
+                .fixedSize()
                 .help("Scan every app in the queue, one at a time.")
             SettingsLink {
                 Label("Settings", systemImage: "gearshape")
             }
+            .fixedSize()
             .help("Scan scope and safety level")
         }
     }
@@ -92,7 +100,7 @@ struct ContentView: View {
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 16)
             .padding(.top, 12)
             .padding(.bottom, 8)
 
@@ -101,7 +109,7 @@ struct ContentView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, 16)
                 Spacer()
             } else {
                 ScrollView {
@@ -123,7 +131,8 @@ struct ContentView: View {
                     .disabled(appState.queue.isEmpty || appState.isScanning || appState.isTrashing)
                 Spacer()
             }
-            .padding(10)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
         }
         .background(Color(nsColor: .windowBackgroundColor))
     }
@@ -143,7 +152,7 @@ struct ContentView: View {
 
     private var emptyDrop: some View {
         VStack(spacing: 12) {
-            dropChrome(compact: false)
+            dropChrome
             if let err = appState.errorMessage {
                 Text(err)
                     .font(.callout)
@@ -264,7 +273,7 @@ struct ContentView: View {
                     Text("Scanning \(entry.info.name)…")
                         .foregroundStyle(.secondary)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             } else if entry.phase == .pending {
                 Text("Waiting. The queue scans one app at a time.")
                     .foregroundStyle(.secondary)
@@ -338,7 +347,7 @@ struct ContentView: View {
         }
     }
 
-    private func dropChrome(compact: Bool) -> some View {
+    private var dropChrome: some View {
         RoundedRectangle(cornerRadius: 12, style: .continuous)
             .strokeBorder(
                 appState.isDropTargeted ? Color.accentColor : Color.secondary.opacity(0.35),
@@ -351,21 +360,20 @@ struct ContentView: View {
             .overlay {
                 VStack(spacing: 6) {
                     Image(systemName: "app.dashed")
-                        .font(.system(size: compact ? 22 : 34))
+                        .font(.system(size: 34))
                         .foregroundStyle(.secondary)
-                    Text(compact ? "Drop more apps" : "Drop .app bundles")
-                        .font(compact ? .callout.weight(.medium) : .headline)
-                    if !compact {
-                        Text("or choose them. Several apps stay in a queue and run one at a time.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
+                    Text("Drop .app bundles")
+                        .font(.headline)
+                    Text("or choose them. Several apps stay in a queue and run one at a time.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(.horizontal, 16)
             }
-            .frame(maxWidth: compact ? .infinity : 520)
-            .frame(height: compact ? 72 : 168)
+            .frame(maxWidth: 520)
+            .frame(height: 168)
     }
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
@@ -384,6 +392,11 @@ private struct QueueRow: View {
     var body: some View {
         Button(action: action) {
             HStack(alignment: .top, spacing: 8) {
+                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                    .fill(isSelected ? Color.accentColor : Color.clear)
+                    .frame(width: 3)
+                    .padding(.vertical, 2)
+                    .accessibilityHidden(true)
                 Image(systemName: symbol)
                     .font(.caption)
                     .foregroundStyle(.secondary)

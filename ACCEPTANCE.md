@@ -1,4 +1,4 @@
-# LocusSweep acceptance (MVP sorts 1–14)
+# LocusSweep acceptance (MVP sorts 1–15)
 
 Unsigned local Debug on macOS 15+ with Xcode. This batch does **not** tag or publish a release.
 
@@ -22,5 +22,6 @@ Mac UI / Trash: `make generate && make build` (`CODE_SIGN_IDENTITY="-"`).
 12. **Settings** — Settings window edits scan scope (library categories + include the `.app`) and safety level. Balanced is the previous default. Strict drops name-only matches. Thorough also keeps files whose names contain the bundle ID. Values persist and apply on the next scan. Apple/system blocks are not a setting.
 13. **Visual layout** — Sidebar queue and detail pane do not overlap. Safety level is visible in the header. Empty queue, pending, scanning, and empty-result states are explicit. Paths truncate in the middle and stay selectable. Window minimum size keeps the sidebar and actions on screen.
 14. **Unsigned MVP** — Checklist above is the local acceptance. Do not `git tag`. Do not upload a GitHub Release. `make build` stays unsigned.
+15. **Review** — Apple/system IDs are blocked once (no duplicate checks). `.app` bundles outside the home folder and `/Applications` are refused, including `/Applications/Utilities`. Unused `filterScanned` is gone. Files and Folders paths (Documents, Desktop, …) get their own recoverable guide. Layout: header actions do not compress into the title; the queue selection has a marker plus a fill; sidebar text shares one left inset; the empty drop zone has no unused compact mode; settings Restore / Rescan stay pinned under the scroll so they are not clipped.
 
 Core package tests cover rules, sizes, safety, permission errors, settings persistence, thorough discovery, and the queue’s single-busy invariant.

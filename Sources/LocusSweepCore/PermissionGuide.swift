@@ -31,6 +31,16 @@ public enum PermissionGuide {
         "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_FilesAndFolders"
 
     /// Relative to the user home. Listing these usually needs Full Disk Access.
+    /// Home folders macOS gates with Files and Folders rather than Full Disk Access.
+    public static let filesAndFoldersRelativePaths: [String] = [
+        "Desktop",
+        "Documents",
+        "Downloads",
+        "Movies",
+        "Music",
+        "Pictures",
+    ]
+
     public static let protectedRelativePaths: [String] = [
         "Library/Containers",
         "Library/Group Containers",
@@ -120,6 +130,18 @@ public enum PermissionGuide {
         return false
     }
 
+    public static func isFilesAndFoldersPath(_ path: String, homeDirectory: URL) -> Bool {
+        let standardized = (path as NSString).standardizingPath
+        let home = (homeDirectory.path as NSString).standardizingPath
+        for relative in filesAndFoldersRelativePaths {
+            let full = (home as NSString).appendingPathComponent(relative)
+            if standardized == full || standardized.hasPrefix(full + "/") {
+                return true
+            }
+        }
+        return false
+    }
+
     public static func isProtectedLibraryPath(_ path: String, homeDirectory: URL) -> Bool {
         let standardized = (path as NSString).standardizingPath
         let home = (homeDirectory.path as NSString).standardizingPath
@@ -134,8 +156,14 @@ public enum PermissionGuide {
 
     public static func issue(path: String, error: Error, homeDirectory: URL) -> AccessIssue? {
         guard isPermissionError(error) else { return nil }
-        let protected = isProtectedLibraryPath(path, homeDirectory: homeDirectory)
-        let kind: AccessKind = protected ? .fullDiskAccess : .unreadable
+        let kind: AccessKind
+        if isProtectedLibraryPath(path, homeDirectory: homeDirectory) {
+            kind = .fullDiskAccess
+        } else if isFilesAndFoldersPath(path, homeDirectory: homeDirectory) {
+            kind = .filesAndFolders
+        } else {
+            kind = .unreadable
+        }
         let message: String
         switch kind {
         case .fullDiskAccess:

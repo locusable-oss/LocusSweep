@@ -50,6 +50,11 @@ final class AppState: ObservableObject {
         AppQueue.cleanOrder(queue).count
     }
 
+    var canTrashCurrent: Bool {
+        guard !isScanning, !isTrashing, let app = activeApp else { return false }
+        return app.phase == .ready && !app.checkedPaths.isEmpty
+    }
+
     var progressLabel: String {
         guard !queue.isEmpty else { return "No apps in the queue" }
         if let index = queue.firstIndex(where: { $0.phase == .scanning }) {

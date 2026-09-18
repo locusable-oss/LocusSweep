@@ -26,6 +26,13 @@ final class PermissionGuideTests: XCTestCase {
         XCTAssertFalse(PermissionGuide.steps(for: .fullDiskAccess).isEmpty)
         XCTAssertFalse(PermissionGuide.settingsURLs(for: .fullDiskAccess).isEmpty)
         XCTAssertTrue(PermissionGuide.summary(issues: [issue!]).contains("Full Disk Access"))
+        let docs = PermissionGuide.issue(
+            path: "/Users/demo/Documents/Demo",
+            error: error,
+            homeDirectory: home
+        )
+        XCTAssertEqual(docs?.kind, .filesAndFolders)
+        XCTAssertFalse(PermissionGuide.settingsURLs(for: .filesAndFolders).isEmpty)
     }
 
     func testMissingDirectoryIsNotAnIssue() {

@@ -37,6 +37,15 @@ final class SafetyFilterTests: XCTestCase {
     func testAllowsThirdPartyAppInApplications() {
         let home = URL(fileURLWithPath: "/Users/demo")
         XCTAssertTrue(SafetyFilter.isSafeToPropose(path: "/Applications/Demo.app", homeDirectory: home))
+        XCTAssertTrue(SafetyFilter.isSafeToPropose(path: "/Users/demo/Applications/Demo.app", homeDirectory: home))
+    }
+
+    func testRejectsAppBundlesOutsideHomeAndApplications() {
+        let home = URL(fileURLWithPath: "/Users/demo")
+        XCTAssertFalse(SafetyFilter.isSafeToPropose(path: "/opt/Demo.app", homeDirectory: home))
+        XCTAssertFalse(SafetyFilter.isSafeToPropose(path: "/tmp/Demo.app", homeDirectory: home))
+        XCTAssertFalse(SafetyFilter.isSafeToPropose(path: "/Applications/Utilities/Demo.app", homeDirectory: home))
+        XCTAssertTrue(SafetyFilter.isSafeToPropose(path: "/Users/demo/Downloads/Demo.app", homeDirectory: home))
     }
 
     func testFilterDropsUnsafeCandidates() {

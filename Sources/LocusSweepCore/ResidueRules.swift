@@ -94,13 +94,10 @@ public enum ResidueRules {
     public static func isBlockedBundleID(_ bundleID: String) -> Bool {
         let id = bundleID.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if id.isEmpty { return true }
-        if id == "com.apple" { return true }
         for prefix in blockedBundlePrefixes {
-            let p = prefix.lowercased()
-            if id == p || id.hasPrefix(p) { return true }
+            let blocked = prefix.lowercased()
+            if id == blocked || id.hasPrefix(blocked) { return true }
         }
-        // Bare Apple-looking IDs without a vendor segment
-        if id.hasPrefix("com.apple") { return true }
         return false
     }
 

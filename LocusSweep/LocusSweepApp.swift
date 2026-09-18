@@ -34,7 +34,7 @@ struct LocusSweepApp: App {
                     appState.requestTrash(.current)
                 }
                 .keyboardShortcut(.delete, modifiers: [.command])
-                .disabled(appState.activeApp?.checkedPaths.isEmpty != false)
+                .disabled(!appState.canTrashCurrent)
                 Button("Clean Queue…") {
                     appState.requestTrash(.queue)
                 }

@@ -4,6 +4,7 @@ struct SettingsView: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
+        VStack(spacing: 0) {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -48,20 +49,25 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                HStack(alignment: .center, spacing: 12) {
-                    Button("Restore Defaults") {
-                        appState.restoreDefaultSettings()
-                    }
-                    Spacer(minLength: 12)
-                    Button("Rescan Queue") {
-                        appState.rescanQueue()
-                    }
-                    .disabled(appState.queue.isEmpty || appState.isScanning || appState.isTrashing)
-                    .keyboardShortcut(.defaultAction)
-                }
             }
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        Divider()
+        HStack(alignment: .center, spacing: 12) {
+            Button("Restore Defaults") {
+                appState.restoreDefaultSettings()
+            }
+            .fixedSize()
+            Spacer(minLength: 12)
+            Button("Rescan Queue") {
+                appState.rescanQueue()
+            }
+            .fixedSize()
+            .disabled(appState.queue.isEmpty || appState.isScanning || appState.isTrashing)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
         }
         .frame(width: 520, height: 640)
     }

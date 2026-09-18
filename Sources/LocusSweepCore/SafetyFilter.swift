@@ -64,29 +64,13 @@ public enum SafetyFilter {
         let isAppBundle = standardized.lowercased().hasSuffix(".app")
 
         if underHomeLibrary {
-            // Inspect leaf / intermediate names for Apple domains
-            let parts = standardized.split(separator: "/").map(String.init)
+            let parts = standardized.split(separator: "/").map { $0.lowercased() }
             for part in parts {
-                let lower = part.lowercased()
                 for blocked in blockedNamePrefixes {
-                    let b = blocked.lowercased()
-                    if lower == b || lower.hasPrefix(b) {
-                        // Allow "Application Support" etc.; only match domain-like components
-                        if lower.hasPrefix("com.apple") || lower.hasPrefix("apple.") || lower.hasPrefix("system.")
-                            || lower.hasPrefix(".globalpreferences") {
-                            return false
-                        }
+                    let prefix = blocked.lowercased()
+                    if part == prefix || part.hasPrefix(prefix) {
+                        return false
                     }
-                }
-                if lower == "com.apple" || lower.hasPrefix("com.apple.") {
-                    return false
-                }
-            }
-            // Extra: preferences leaf
-            if standardized.contains("/Preferences/") {
-                let leaf = (standardized as NSString).lastPathComponent.lowercased()
-                if leaf.hasPrefix("com.apple.") || leaf == ".globalpreferences.plist" {
-                    return false
                 }
             }
             if safetyLevel == .strict, matchedBy == "appName" {
@@ -95,21 +79,19 @@ public enum SafetyFilter {
             return true
         }
 
-        // Selected .app outside ~/Library: allow only if not under /System and not an Apple bundle path heuristic
+        // A selected .app is allowed only under the home folder or /Applications.
+        // /Applications/Utilities is already in blockedAbsolutePrefixes. Anywhere else is unsafe.
         if isAppBundle {
-            if standardized.hasPrefix("/System/") { return false }
-            if standardized.hasPrefix("/Library/") { return false }
             let leaf = (standardized as NSString).lastPathComponent.lowercased()
-            // Block Apple-named apps in /Applications when leaf starts with common Apple names — keep conservative: require caller to pass only third-party
-            if leaf == "finder.app" || leaf == "safari.app" || leaf == "mail.app" || leaf == "system settings.app"
-                || leaf == "system preferences.app" {
+            if leaf == "finder.app" || leaf == "safari.app" || leaf == "mail.app"
+                || leaf == "system settings.app" || leaf == "system preferences.app" {
                 return false
             }
-            // Prefer home Applications or /Applications third-party; still OK if under home
-            if underHomeApps || standardized.hasPrefix("/Applications/") || standardized.hasPrefix(home + "/") {
+            let underHome = standardized == home || standardized.hasPrefix(home + "/")
+            if underHome || underHomeApps || standardized.hasPrefix("/Applications/") {
                 return true
             }
-            return true
+            return false
         }
 
         // Anything else outside ~/Library is unsafe by default
@@ -132,10 +114,4 @@ public enum SafetyFilter {
         }
     }
 
-    public static func filterScanned(
-        _ items: [ScannedResidue],
-        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
-    ) -> [ScannedResidue] {
-        items.filter { isSafeToPropose(path: $0.path, homeDirectory: homeDirectory) }
-    }
 }
